@@ -33,6 +33,7 @@ fn main() {
             }
         }
         None => {}
+        _ => {}
     }
 
     // Continued program logic goes here...

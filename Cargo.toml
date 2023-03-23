@@ -1,7 +1,7 @@
 [package]
 name = "rustysentry"
-author = "Liu, Ziyi <lavandejoey@outlook.com>"
-about = "A tool for detecting sensitive information in Git repositories by Rust."
+#author = "Liu, Ziyi <lavandejoey@outlook.com>"
+#about = "A tool for detecting sensitive information in Git repositories by Rust."
 version = "0.1.0"
 edition = "2021"
 
