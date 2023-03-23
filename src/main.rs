@@ -1,4 +1,5 @@
 mod config;
+mod traverse;
 use clap::{Parser};
 
 fn main() {
