@@ -1,3 +1,4 @@
-log = "warn"
+log = "error"
 ignore_case = false
 verbose = false
+repo-path = "../"

@@ -1,43 +1,48 @@
-use git2::{Repository, BranchType};
+use std::str;
 
-fn traverse_repo(repo_path: &str) -> Result<(), git2::Error> {
-    let repo = Repository::open(repo_path)?;
-    let head = repo.head()?;
-    let branch = head.shorthand().unwrap_or("master");
+use git2::{Oid, Repository};
+use log::{debug, error};
 
-    println!("Traversing repository {} (branch: {})", repo_path, branch);
+// Recursively traverse tree objects
+fn traverse_tree(repo: &Repository, oid: Oid) -> Result<(), git2::Error> {
+    // Find the tree object by its OID
+    let tree = repo.find_tree(oid)?;
 
-    // Traverse commits
-    let mut revwalk = repo.revwalk()?;
-    revwalk.push_head()?;
-    revwalk.set_sorting(git2::Sort::TIME)?;
+    // Traverse each entry of the tree object
+    for entry in tree.iter() {
+        // Convert the entry to a Git object
+        let object = entry.to_object(&repo)?;
 
-    for oid in revwalk {
-        let commit = repo.find_commit(oid?)?;
-
-        // Traverse tree
-        let tree = commit.tree()?;
-        traverse_tree(&repo, &tree)?;
-    }
-    return Ok(());
-}
-
-fn traverse_tree(repo: &Repository, tree: &git2::Tree) -> Result<(), git2::Error> {
-    for entry in tree {
-        let entry = entry?;
-        let path = entry.name().unwrap_or("");
-
-        if entry.filemode().is_file() {
-            // Do something with file
-            let blob = entry.to_object(repo)?.as_blob().unwrap();
-            let content = std::str::from_utf8(blob.content())?;
-            println!("Found file: {}", path);
-            println!("Content: {}", content);
-        } else if entry.filemode().is_tree() {
-            // Recursively traverse subdirectory
-            let sub_tree = entry.to_object(repo)?.as_tree().unwrap();
-            traverse_tree(repo, &sub_tree)?;
+        // Perform the corresponding operation according to the object type
+        match object.kind() {
+            Some(git2::ObjectType::Blob) => {
+                // If the object is a blob, perform the corresponding operation
+                // For example, you can print the content of the blob
+                let blob = object.as_blob().unwrap();
+                debug!("{}", str::from_utf8(blob.content()).unwrap());
+            }
+            Some(git2::ObjectType::Tree) => {
+                // If the object is a tree, recursively traverse its content
+                let tree_oid = object.as_tree().unwrap().id();
+                traverse_tree(repo, tree_oid)?;
+            }
+            _ => {
+                // If the object is not a blob or a tree, ignore it
+                error!("Unknown Git object type");
+            }
         }
     }
-    return Ok(());
+
+    Ok(())
+}
+
+// Traverse the commit that the HEAD reference points to
+pub(crate) fn traverse_head(repo: &Repository) -> Result<(), git2::Error> {
+    // Get the HEAD reference
+    let head = repo.head()?;
+    // Get the OID of the commit object
+    let oid = head.peel_to_commit()?.tree_id();
+    // Recursively traverse the tree object
+    traverse_tree(repo, oid)?;
+    Ok(())
 }

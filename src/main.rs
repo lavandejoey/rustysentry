@@ -1,41 +1,43 @@
+use std::io::{Write};
+use std::string::String;
+use env_logger::{Builder, Env};
+use git2::{Repository};
+use log::{debug, error, info, warn};
+use config::Configs;
+
 mod config;
 mod traverse;
-use clap::{Parser};
 
-fn main() {
-    let cli = config::Cli::parse();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let configs: Configs = config::Configs::new()?;
 
-    // You can check the value provided by positional arguments, or option arguments
-    if let Some(name) = cli.name.as_deref() {
-        println!("Value for name: {name}");
-    }
+    // Initial settings
+    // Set log level
+    let verbose_level: String = match configs.verbose {
+        true => String::from("debug"),
+        false => String::from("info"),
+    };
+    let log_level: String = match configs.log {
+        Some(l)if l.eq_ignore_ascii_case("info") => String::from("info"),
+        Some(l)if l.eq_ignore_ascii_case("debug") => String::from("debug"),
+        Some(l)if l.eq_ignore_ascii_case("warn") => String::from("warn"),
+        Some(l)if l.eq_ignore_ascii_case("error") => String::from("error"),
+        None => verbose_level,
+        _ => panic!("DO NOT BE CRAZY! (Check if your log mode config is correct.)"),
+    };
 
-    if let Some(config_path) = cli.config.as_deref() {
-        println!("Value for config: {}", config_path.display());
-    }
+    let env = Env::default()
+        .filter_or("RUST_LOG", &log_level)
+        .write_style_or("RUST_LOG_STYLE", "always");
+    Builder::from_env(env).format(|buf, record| {
+        let now = chrono::Local::now();
+        writeln!(buf, "{} [{}] {}",
+                 now.format("[%Y-%m-%d %H:%M:%S%.3f]"), record.level(), record.args())
+    }).init();
 
-    // You can see how many times a particular flag or argument occurred
-    // Note, only flags can have multiple occurrences
-    match cli.debug {
-        0 => println!("Debug mode is off"),
-        1 => println!("Debug mode is kind of on"),
-        2 => println!("Debug mode is on"),
-        _ => println!("Don't be crazy"),
-    }
-
-    // You can check for the existence of subcommands, and if found use their
-    // matches just as you would the top level cmd
-    match &cli.command {
-        Some(config::Commands::Test { list }) => {
-            if *list {
-                println!("Printing testing lists...");
-            } else {
-                println!("Not printing testing lists...");
-            }
-        }
-        None => {}
-        _ => {}
-    }
-
-    // Continued program logic goes here...
+    // Open the Git repository in the current directory
+    let repo = Repository::open(".").unwrap();
+    // Traverse the commit that the HEAD reference points to
+    traverse::traverse_head(&repo).unwrap();
+    Ok(())
 }
