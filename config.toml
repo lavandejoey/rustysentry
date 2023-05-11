@@ -1,0 +1,3 @@
+log = "warn"
+ignore_case = false
+verbose = false

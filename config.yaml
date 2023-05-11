@@ -1,0 +1,4 @@
+log: "debug"
+ignore_case: false
+verbose: false
+repo-path: "../"
