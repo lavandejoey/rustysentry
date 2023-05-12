@@ -18,3 +18,4 @@ serde_derive = { version = "1.0.158" }
 serde_yaml = { version = "0.9.19" }
 openssl-sys = { version = "0.9.82" }
 toml = { version = "0.7.3" }
+rand = { version = "0.8.4" }
