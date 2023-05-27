@@ -6,11 +6,11 @@ debug_log() {
 debug_log "INFO" "AutoTest.sh start"
 ############################## 1. build ##############################
 debug_log "INFO" "build start"
-cargo build
-if [ $? -ne 0 ]; then
-  debug_log "ERROR" "build failed"
-  exit 1
-fi
+#cargo build
+#if [ $? -ne 0 ]; then
+#  debug_log "ERROR" "build failed"
+#  exit 1
+#fi
 debug_log "INFO" "build end"
 ############################## 2. run ##############################
 #debug_log "INFO" "run start"

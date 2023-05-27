@@ -1,4 +1,8 @@
-log = "error"
-ignore_case = false
-verbose = false
-repo-path = "../"
+log = "debug"
+config = "config.toml"
+pattern = ""
+output_file = "./log.txt"
+ignore_case = true
+verbose = true
+[command.Scan]
+repo_path = "https://github.com/lavandejoey/top.lzyatshcn"

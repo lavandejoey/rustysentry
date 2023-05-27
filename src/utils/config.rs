@@ -58,7 +58,7 @@ pub(crate) struct Configs {
 #[derive(Subcommand, Deserialize)]
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) enum Commands {
-    Scan{
+    Scan {
         repo_path: Option<String>,
     },
 }
@@ -66,7 +66,7 @@ pub(crate) enum Commands {
 impl Configs {
     pub(crate) fn new() -> Result<Self, Box<dyn std::error::Error>> {
         let mut configs = Self::parse();
-        let default_config:Configs = Configs {
+        let default_config: Configs = Configs {
             log: Some("info".to_string()),
             config: None,
             pattern: None,
